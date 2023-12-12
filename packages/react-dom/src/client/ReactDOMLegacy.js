@@ -114,7 +114,7 @@ function noopOnRecoverableError() {
   // legacy API.
 }
 
-function handleCallback(callback) {
+function handleCallback(callback, root) {
   if (typeof callback === 'function') {
     const originalCallback = callback;
     callback = function () {
@@ -142,9 +142,10 @@ function legacyCreateRootFromDOMContainer(
   callback: ?Function,
   isHydrationContainer: boolean,
 ): FiberRoot {
-  callback = handleCallback(callback);
+  
   
   if (isHydrationContainer) {
+    callback = handleCallback(callback, root);
     const root: FiberRoot = createHydrationContainer(
       initialChildren,
       callback,
@@ -167,6 +168,8 @@ function legacyCreateRootFromDOMContainer(
   // First clear any existing content.
   clearContainer(container);
 
+  callback = handleCallback(callback, root);
+  
   const root = createContainer(
     container,
     LegacyRoot,
