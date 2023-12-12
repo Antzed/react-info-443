@@ -39,6 +39,7 @@
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-replace": "^5.0.2",
+    "@testing-library/react": "^14.1.2",
     "abortcontroller-polyfill": "^1.7.5",
     "art": "0.10.1",
     "babel-plugin-syntax-trailing-function-commas": "^6.5.0",
