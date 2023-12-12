@@ -114,6 +114,110 @@ function noopOnRecoverableError() {
   // legacy API.
 }
 
+//------//
+
+// function legacyCreateRootFromDOMContainer(
+//   container: Container,
+//   initialChildren: ReactNodeList,
+//   parentComponent: ?React$Component<any, any>,
+//   callback: ?Function,
+//   isHydrationContainer: boolean,
+// ): FiberRoot {
+//   if (isHydrationContainer) {
+//     if (typeof callback === 'function') {
+//       const originalCallback = callback;
+//       callback = function () {
+//         const instance = getPublicRootInstance(root);
+//         originalCallback.call(instance);
+//       };
+//     }
+
+//     const root: FiberRoot = createHydrationContainer(
+//       initialChildren,
+//       callback,
+//       container,
+//       LegacyRoot,
+//       null, // hydrationCallbacks
+//       false, // isStrictMode
+//       false, // concurrentUpdatesByDefaultOverride,
+//       '', // identifierPrefix
+//       noopOnRecoverableError,
+//       // TODO(luna) Support hydration later
+//       null,
+//       null,
+//     );
+//     container._reactRootContainer = root;
+//     markContainerAsRoot(root.current, container);
+
+//     const rootContainerElement =
+//       container.nodeType === COMMENT_NODE ? container.parentNode : container;
+//     // $FlowFixMe[incompatible-call]
+//     listenToAllSupportedEvents(rootContainerElement);
+
+//     flushSync();
+//     return root;
+//   } else {
+//     // First clear any existing content.
+//     clearContainer(container);
+
+//     if (typeof callback === 'function') {
+//       const originalCallback = callback;
+//       callback = function () {
+//         const instance = getPublicRootInstance(root);
+//         originalCallback.call(instance);
+//       };
+//     }
+
+//     const root = createContainer(
+//       container,
+//       LegacyRoot,
+//       null, // hydrationCallbacks
+//       false, // isStrictMode
+//       false, // concurrentUpdatesByDefaultOverride,
+//       '', // identifierPrefix
+//       noopOnRecoverableError, // onRecoverableError
+//       null, // transitionCallbacks
+//     );
+//     container._reactRootContainer = root;
+//     markContainerAsRoot(root.current, container);
+
+//     const rootContainerElement =
+//       container.nodeType === COMMENT_NODE ? container.parentNode : container;
+//     // $FlowFixMe[incompatible-call]
+//     listenToAllSupportedEvents(rootContainerElement);
+
+//     // Initial mount should not be batched.
+//     flushSync(() => {
+//       updateContainer(initialChildren, root, parentComponent, callback);
+//     });
+
+//     return root;
+//   }
+// }
+
+// Function to handle callback
+function handleCallback(callback) {
+  if (typeof callback === 'function') {
+    const originalCallback = callback;
+    callback = function () {
+      const instance = getPublicRootInstance(root);
+      originalCallback.call(instance);
+    };
+  }
+  return callback;
+}
+
+// Function to set root container
+function setRootContainer(container, root) {
+  container._reactRootContainer = root;
+  markContainerAsRoot(root.current, container);
+  
+  const rootContainerElement =
+    container.nodeType === COMMENT_NODE ? container.parentNode : container;
+  // $FlowFixMe[incompatible-call]
+  listenToAllSupportedEvents(rootContainerElement);
+}
+
 function legacyCreateRootFromDOMContainer(
   container: Container,
   initialChildren: ReactNodeList,
@@ -121,15 +225,9 @@ function legacyCreateRootFromDOMContainer(
   callback: ?Function,
   isHydrationContainer: boolean,
 ): FiberRoot {
+  callback = handleCallback(callback);
+  
   if (isHydrationContainer) {
-    if (typeof callback === 'function') {
-      const originalCallback = callback;
-      callback = function () {
-        const instance = getPublicRootInstance(root);
-        originalCallback.call(instance);
-      };
-    }
-
     const root: FiberRoot = createHydrationContainer(
       initialChildren,
       callback,
@@ -144,54 +242,35 @@ function legacyCreateRootFromDOMContainer(
       null,
       null,
     );
-    container._reactRootContainer = root;
-    markContainerAsRoot(root.current, container);
-
-    const rootContainerElement =
-      container.nodeType === COMMENT_NODE ? container.parentNode : container;
-    // $FlowFixMe[incompatible-call]
-    listenToAllSupportedEvents(rootContainerElement);
-
+    setRootContainer(container, root);
     flushSync();
     return root;
-  } else {
-    // First clear any existing content.
-    clearContainer(container);
-
-    if (typeof callback === 'function') {
-      const originalCallback = callback;
-      callback = function () {
-        const instance = getPublicRootInstance(root);
-        originalCallback.call(instance);
-      };
-    }
-
-    const root = createContainer(
-      container,
-      LegacyRoot,
-      null, // hydrationCallbacks
-      false, // isStrictMode
-      false, // concurrentUpdatesByDefaultOverride,
-      '', // identifierPrefix
-      noopOnRecoverableError, // onRecoverableError
-      null, // transitionCallbacks
-    );
-    container._reactRootContainer = root;
-    markContainerAsRoot(root.current, container);
-
-    const rootContainerElement =
-      container.nodeType === COMMENT_NODE ? container.parentNode : container;
-    // $FlowFixMe[incompatible-call]
-    listenToAllSupportedEvents(rootContainerElement);
-
-    // Initial mount should not be batched.
-    flushSync(() => {
-      updateContainer(initialChildren, root, parentComponent, callback);
-    });
-
-    return root;
   }
+
+  // First clear any existing content.
+  clearContainer(container);
+
+  const root = createContainer(
+    container,
+    LegacyRoot,
+    null, // hydrationCallbacks
+    false, // isStrictMode
+    false, // concurrentUpdatesByDefaultOverride,
+    '', // identifierPrefix
+    noopOnRecoverableError, // onRecoverableError
+    null, // transitionCallbacks
+  );
+  setRootContainer(container, root);
+
+  // Initial mount should not be batched.
+  flushSync(() => {
+    updateContainer(initialChildren, root, parentComponent, callback);
+  });
+
+  return root;
 }
+
+//-------//
 
 function warnOnInvalidCallback(callback: mixed, callerName: string): void {
   if (__DEV__) {
