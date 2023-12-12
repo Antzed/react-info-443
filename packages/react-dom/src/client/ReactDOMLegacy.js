@@ -289,10 +289,7 @@ export function hydrate(
   }
 
   if (__DEV__) {
-    const isModernRoot =
-      isContainerMarkedAsRoot(container) &&
-      container._reactRootContainer === undefined;
-    if (isModernRoot) {
+    if (checkIsModernRoot(container)) {
       console.error(
         'You are calling ReactDOM.hydrate() on a container that was previously ' +
           'passed to ReactDOMClient.createRoot(). This is not supported. ' +
@@ -329,10 +326,7 @@ export function render(
   }
 
   if (__DEV__) {
-    const isModernRoot =
-      isContainerMarkedAsRoot(container) &&
-      container._reactRootContainer === undefined;
-    if (isModernRoot) {
+    if (checkIsModernRoot(container)) {
       console.error(
         'You are calling ReactDOM.render() on a container that was previously ' +
           'passed to ReactDOMClient.createRoot(). This is not supported. ' +
@@ -389,10 +383,8 @@ export function unmountComponentAtNode(container: Container): boolean {
   }
 
   if (__DEV__) {
-    const isModernRoot =
-      isContainerMarkedAsRoot(container) &&
-      container._reactRootContainer === undefined;
-    if (isModernRoot) {
+    
+    if (checkIsModernRoot(container)) {
       console.error(
         'You are calling ReactDOM.unmountComponentAtNode() on a container that was previously ' +
           'passed to ReactDOMClient.createRoot(). This is not supported. Did you mean to call root.unmount()?',
@@ -451,4 +443,8 @@ export function unmountComponentAtNode(container: Container): boolean {
 
     return false;
   }
+}
+
+function checkIsModernRoot(container: Container): boolean {
+  return isContainerMarkedAsRoot(container) && container._reactRootContainer === undefined;
 }
