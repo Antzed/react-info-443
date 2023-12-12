@@ -109,11 +109,6 @@ function getReactRootElementInContainer(container: any) {
   }
 }
 
-function noopOnRecoverableError() {
-  // This isn't reachable because onRecoverableError isn't called in the
-  // legacy API.
-}
-
 function handleCallback(callback, root) {
   if (typeof callback === 'function') {
     const originalCallback = callback;
@@ -131,7 +126,6 @@ function setRootContainer(container, root) {
   
   const rootContainerElement =
     container.nodeType === COMMENT_NODE ? container.parentNode : container;
-  // $FlowFixMe[incompatible-call]
   listenToAllSupportedEvents(rootContainerElement);
 }
 
@@ -415,20 +409,15 @@ export function unmountComponentAtNode(container: Container): boolean {
         unmarkContainerAsRoot(container);
       });
     });
-    // If you call unmountComponentAtNode twice in quick succession, you'll
-    // get `true` twice. That's probably fine?
     return true;
   } else {
     if (__DEV__) {
       const rootEl = getReactRootElementInContainer(container);
       const hasNonRootReactChild = !!(rootEl && getInstanceFromNode(rootEl));
 
-      // Check if the container itself is a React root node.
       const isContainerReactRoot =
         container.nodeType === ELEMENT_NODE &&
         isValidContainerLegacy(container.parentNode) &&
-        // $FlowFixMe[prop-missing]
-        // $FlowFixMe[incompatible-use]
         !!container.parentNode._reactRootContainer;
 
       if (hasNonRootReactChild) {
